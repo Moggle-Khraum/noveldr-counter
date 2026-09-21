@@ -15,3 +15,21 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface JoinSessionBody {
+  sessionId?: string;
+}
+
+export interface LeaveSessionBody {
+  sessionId: string;
+}
+
+export interface SessionStatus {
+  sessionId: string;
+  /** @minimum 0 */
+  onlineCount: number;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
+

@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: system
     description: Service metadata
+  - name: sessions
+    description: Online session tracking
 paths:
   /:
     get:
@@ -39,6 +41,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /sessions/join:
+    post:
+      operationId: joinSession
+      tags: [sessions]
+      summary: Register an online session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JoinSessionBody"
+      responses:
+        "200":
+          description: Session registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStatus"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /sessions/leave:
+    post:
+      operationId: leaveSession
+      tags: [sessions]
+      summary: Remove an online session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeaveSessionBody"
+      responses:
+        "200":
+          description: Session removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStatus"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     ApiInfo:
@@ -61,4 +111,34 @@ components:
           type: string
       required:
         - status
+    JoinSessionBody:
+      type: object
+      properties:
+        sessionId:
+          type: string
+    LeaveSessionBody:
+      type: object
+      properties:
+        sessionId:
+          type: string
+      required:
+        - sessionId
+    SessionStatus:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        onlineCount:
+          type: integer
+          minimum: 0
+      required:
+        - sessionId
+        - onlineCount
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 

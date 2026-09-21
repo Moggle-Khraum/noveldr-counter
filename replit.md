@@ -1,6 +1,6 @@
 # Node.js API
 
-A domain-neutral Express API foundation with versioned metadata, health checks, structured logging, and OpenAPI-generated client contracts.
+An Express API for tracking online NovelDR sessions, with Discord status updates, health checks, structured logging, and OpenAPI-generated client contracts.
 
 ## Run & Operate
 
@@ -32,12 +32,13 @@ A domain-neutral Express API foundation with versioned metadata, health checks, 
 
 - API routes are mounted under `/api` so the service can share the workspace proxy with future artifacts.
 - OpenAPI is the contract source of truth; generated Zod schemas validate server responses.
-- The initial API stays domain-neutral until the product domain and resource model are defined.
+- Online sessions are held in memory because the current counter represents live presence, not durable user records.
+- Discord updates are optional and enabled through `DISCORD_WEBHOOK_URL`.
 - Structured Pino logging is used for request correlation and sensitive-header redaction.
 
 ## Product
 
-The service currently exposes basic API metadata at `/api/` and a liveness check at `/api/healthz`. Domain endpoints can be added as the product requirements are defined.
+The service exposes API metadata, a liveness check, and join/leave endpoints that track the current online NovelDR session count. When configured, the count is reflected in a Discord webhook message.
 
 ## User preferences
 

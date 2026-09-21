@@ -6,22 +6,30 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   ApiInfo,
-  HealthStatus
+  ErrorResponse,
+  HealthStatus,
+  JoinSessionBody,
+  LeaveSessionBody,
+  SessionStatus
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
-import type { ErrorType } from '../custom-fetch';
+import type { ErrorType , BodyType } from '../custom-fetch';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -202,4 +210,180 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+
+export const getJoinSessionUrl = () => {
+
+
+
+
+  return `/api/sessions/join`
+}
+
+/**
+ * @summary Register an online session
+ */
+export const joinSession = async (joinSessionBody?: JoinSessionBody, options?: Parameters<typeof customFetch>[1]): Promise<SessionStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SessionStatus>(getJoinSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(joinSessionBody)
+  }
+);}
+
+
+
+
+
+export const getJoinSessionMutationKey = () => ['joinSession'] as const;
+
+export const getJoinSessionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinSession>>, TError,JoinSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof joinSession>>, TError,JoinSessionMutationVariables, TContext> => {
+
+const mutationKey = getJoinSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof joinSession>>, JoinSessionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  joinSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type JoinSessionMutationResult = NonNullable<Awaited<ReturnType<typeof joinSession>>>
+    export type JoinSessionMutationBody = BodyType<JoinSessionBody> | undefined
+    export type JoinSessionMutationError = ErrorType<ErrorResponse>
+    export type JoinSessionMutationVariables = {data?: BodyType<JoinSessionBody>}
+
+    /**
+ * @summary Register an online session
+ */
+export const useJoinSession = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinSession>>, TError,JoinSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof joinSession>>,
+        TError,
+        JoinSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getJoinSessionMutationOptions(options));
+    }
+
+export const getLeaveSessionUrl = () => {
+
+
+
+
+  return `/api/sessions/leave`
+}
+
+/**
+ * @summary Remove an online session
+ */
+export const leaveSession = async (leaveSessionBody: LeaveSessionBody, options?: Parameters<typeof customFetch>[1]): Promise<SessionStatus> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SessionStatus>(getLeaveSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(leaveSessionBody)
+  }
+);}
+
+
+
+
+
+export const getLeaveSessionMutationKey = () => ['leaveSession'] as const;
+
+export const getLeaveSessionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveSession>>, TError,LeaveSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof leaveSession>>, TError,LeaveSessionMutationVariables, TContext> => {
+
+const mutationKey = getLeaveSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof leaveSession>>, LeaveSessionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  leaveSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LeaveSessionMutationResult = NonNullable<Awaited<ReturnType<typeof leaveSession>>>
+    export type LeaveSessionMutationBody = BodyType<LeaveSessionBody>
+    export type LeaveSessionMutationError = ErrorType<ErrorResponse>
+    export type LeaveSessionMutationVariables = {data: BodyType<LeaveSessionBody>}
+
+    /**
+ * @summary Remove an online session
+ */
+export const useLeaveSession = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveSession>>, TError,LeaveSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof leaveSession>>,
+        TError,
+        LeaveSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLeaveSessionMutationOptions(options));
+    }
 

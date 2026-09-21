@@ -7,4 +7,8 @@
  */
 
 export * from './apiInfo';
+export * from './errorResponse';
 export * from './healthStatus';
+export * from './joinSessionBody';
+export * from './leaveSessionBody';
+export * from './sessionStatus';

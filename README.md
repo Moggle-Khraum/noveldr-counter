@@ -2,7 +2,7 @@
 
 A domain-neutral Node.js API foundation built with Express, TypeScript, OpenAPI, Zod, and Drizzle.
 
-The project currently provides a small, production-oriented API shell with structured logging, health checks, consistent JSON errors, and generated API bindings. Domain-specific resources can be added on top of this foundation.
+The project currently provides a small, production-oriented API with structured logging, health checks, consistent JSON errors, generated API bindings, and an in-memory online-session counter that can update Discord.
 
 ## API
 
@@ -12,8 +12,30 @@ The API is served under `/api`.
 | --- | --- | --- |
 | `GET` | `/api/` | Service metadata |
 | `GET` | `/api/healthz` | Liveness health check |
+| `POST` | `/api/sessions/join` | Register an online session |
+| `POST` | `/api/sessions/leave` | Remove an online session |
 
 Unknown API routes return a JSON `404` response. Malformed JSON request bodies return `400`.
+
+### Session tracking
+
+Join with an optional existing session ID:
+
+```bash
+curl -X POST http://localhost:5000/api/sessions/join \
+  -H 'content-type: application/json' \
+  -d '{}'
+```
+
+Leave with the returned session ID:
+
+```bash
+curl -X POST http://localhost:5000/api/sessions/leave \
+  -H 'content-type: application/json' \
+  -d '{"sessionId":"session-id"}'
+```
+
+Session state is held in memory and resets when the server restarts. Set `DISCORD_WEBHOOK_URL` to publish the current online count to a Discord channel.
 
 ## Requirements
 

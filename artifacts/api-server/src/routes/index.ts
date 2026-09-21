@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { GetApiInfoResponse } from "@workspace/api-zod";
 import healthRouter from "./health";
+import sessionsRouter from "./sessions";
 
 const router: IRouter = Router();
 
@@ -15,5 +16,6 @@ router.get("/", (_req, res) => {
 });
 
 router.use(healthRouter);
+router.use("/sessions", sessionsRouter);
 
 export default router;

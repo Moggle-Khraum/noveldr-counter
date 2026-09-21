@@ -28,3 +28,37 @@ export const HealthCheckResponse = zod.object({
 })
 
 
+/**
+ * @summary Register an online session
+ */
+export const JoinSessionBody = zod.object({
+  "sessionId": zod.string().optional()
+})
+
+export const joinSessionResponseOnlineCountMin = 0;
+
+
+
+export const JoinSessionResponse = zod.object({
+  "sessionId": zod.string(),
+  "onlineCount": zod.number().int().min(joinSessionResponseOnlineCountMin)
+})
+
+
+/**
+ * @summary Remove an online session
+ */
+export const LeaveSessionBody = zod.object({
+  "sessionId": zod.string()
+})
+
+export const leaveSessionResponseOnlineCountMin = 0;
+
+
+
+export const LeaveSessionResponse = zod.object({
+  "sessionId": zod.string(),
+  "onlineCount": zod.number().int().min(leaveSessionResponseOnlineCountMin)
+})
+
+
