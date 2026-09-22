@@ -1,89 +1,90 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import axios from "axios";
-import {
-  JoinSessionBody,
-  JoinSessionResponse,
-  LeaveSessionBody,
-  LeaveSessionResponse,
-} from "@workspace/api-zod";
-import { logger } from "../lib/logger";
+import { Client, GatewayIntentBits, ChannelType } from "discord.js";
 
 const router: IRouter = Router();
 
+// Discord bot setup
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
+
+// In-memory session storage
 const activeSessions = new Set<string>();
-let lastMessageId: string | null = null;
 
-const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+// Connect bot when server starts
+let botReady = false;
+if (DISCORD_BOT_TOKEN) {
+  client.login(DISCORD_BOT_TOKEN);
+  client.once("ready", () => {
+    botReady = true;
+    console.log(`✅ Discord bot logged in as ${client.user?.username}`);
+  });
 
-async function updateDiscordStatus(count: number): Promise<void> {
-  if (!discordWebhookUrl) {
+  client.on("error", (error) => {
+    console.error("Discord bot error:", error);
+  });
+}
+
+// Helper function to update Discord channel name
+async function updateDiscordChannel(count: number) {
+  if (!botReady || !DISCORD_CHANNEL_ID) {
     return;
   }
 
-  const message = `📱 **${count}** user${count !== 1 ? "s" : ""} online`;
-
   try {
-    if (!lastMessageId) {
-      const webhookUrl = new URL(discordWebhookUrl);
-      webhookUrl.searchParams.set("wait", "true");
-      const response = await axios.post(webhookUrl.toString(), { content: message });
-      lastMessageId = response.data.id;
+    const channel = await client.channels.fetch(DISCORD_CHANNEL_ID);
+
+    if (!channel || channel.type !== ChannelType.GuildVoice) {
+      console.error("Channel not found or not a voice channel");
       return;
     }
 
-    try {
-      await axios.patch(
-        `${discordWebhookUrl}/messages/${lastMessageId}`,
-        { content: message },
-      );
-    } catch {
-      const webhookUrl = new URL(discordWebhookUrl);
-      webhookUrl.searchParams.set("wait", "true");
-      const response = await axios.post(webhookUrl.toString(), { content: message });
-      lastMessageId = response.data.id;
+    const newName = `🟢 Online: ${count}`;
+
+    if (channel.name !== newName) {
+      await channel.setName(newName);
+      console.log(`Channel renamed to: ${newName}`);
     }
-  } catch (err) {
-    logger.error({ err }, "Discord status update failed");
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Discord channel update error:", error.message);
+    }
   }
 }
 
-router.post("/join", async (req: Request, res: Response): Promise<void> => {
-  const parsedBody = JoinSessionBody.safeParse(req.body ?? {});
-  if (!parsedBody.success) {
-    res.status(400).json({ error: parsedBody.error.message });
-    return;
-  }
-
-  const requestedSessionId = parsedBody.data.sessionId;
+// POST /sessions/join
+router.post("/join", async (req: Request, res: Response) => {
   const sessionId =
-    requestedSessionId && requestedSessionId.length > 0
-      ? requestedSessionId
-      : `session_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    (req.body?.sessionId as string) ||
+    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   activeSessions.add(sessionId);
-  const onlineCount = activeSessions.size;
+  const count = activeSessions.size;
 
-  req.log.info({ sessionId, onlineCount }, "User joined");
-  await updateDiscordStatus(onlineCount);
+  req.log.info({ sessionId, onlineCount: count }, "User joined");
 
-  res.json(JoinSessionResponse.parse({ sessionId, onlineCount }));
+  await updateDiscordChannel(count);
+
+  res.json({ sessionId, onlineCount: count });
 });
 
-router.post("/leave", async (req: Request, res: Response): Promise<void> => {
-  const parsedBody = LeaveSessionBody.safeParse(req.body);
-  if (!parsedBody.success) {
+// POST /sessions/leave
+router.post("/leave", async (req: Request, res: Response) => {
+  const { sessionId } = req.body as { sessionId: string };
+
+  if (!sessionId) {
     res.status(400).json({ error: "sessionId required" });
     return;
   }
 
-  const { sessionId } = parsedBody.data;
   activeSessions.delete(sessionId);
-  const onlineCount = activeSessions.size;
+  const count = activeSessions.size;
 
-  req.log.info({ sessionId, onlineCount }, "User left");
-  await updateDiscordStatus(onlineCount);
+  req.log.info({ sessionId, onlineCount: count }, "User left");
 
-  res.json(LeaveSessionResponse.parse({ sessionId, onlineCount }));
+  await updateDiscordChannel(count);
+
+  res.json({ sessionId, onlineCount: count });
 });
 
 export default router;
