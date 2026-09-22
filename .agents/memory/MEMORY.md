@@ -1,0 +1,1 @@
+- [GitHub sync](github-sync.md) — use the connected GitHub integration when the local HTTPS remote cannot authenticate.
